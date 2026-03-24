@@ -1,18 +1,17 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef SV_HELPER_H
+#define SV_HELPER_H
+
 
 #include <stddef.h>
 #include <string.h>
 #include <stdbool.h>
-
-#include "raylib.h"
 
 /**
  * @struct sv
  * @brief Non-owning string view.
  */
 typedef struct {
-    const char *data;
+    char *data;
     size_t size;
 } sv;
 
@@ -24,7 +23,7 @@ typedef struct {
  * @param str A valid null-terminated C string.
  * @return A string view pointing to the given string.
  */
-static inline sv sv_from_cstr(const char *str) {
+static inline sv sv_from_cstr(char *str) {
     return (sv){
         .data = str,
         .size = strlen(str),
@@ -40,7 +39,7 @@ static inline sv sv_from_cstr(const char *str) {
  * @param size Number of characters in the view.
  * @return A string view pointing to the specified memory range.
  */
-static inline sv sv_from_parts(const char *data, size_t size) {
+static inline sv sv_from_parts(char *data, size_t size) {
     return (sv){
         .data = data,
         .size = size,
@@ -67,10 +66,10 @@ static inline sv sv_from_parts(const char *data, size_t size) {
  * @return A string view representing the requested substring,
  *         or an empty view if @p start is out of bounds.
  */
-static inline sv sv_substring(sv s, size_t start, size_t len) {
-    if (start >= s.size) return (sv){NULL, 0};
-    if (start + len > s.size) len = s.size - start;
-    return (sv){ .data = s.data + start, .size = len };
+static inline sv sv_substring(sv *s, size_t start, size_t len) {
+    if (start >= s->size) return (sv){NULL, 0};
+    if (start + len > s->size) len = s->size - start;
+    return (sv){ .data = s->data + start, .size = len };
 }
 
 /**
@@ -82,8 +81,8 @@ static inline sv sv_substring(sv s, size_t start, size_t len) {
  * @param b The second string view.
  * @return Non-zero if the two views are equal, 0 otherwise.
  */
-static inline int sv_eq(sv a, sv b) {
-    return a.size == b.size && memcmp(a.data, b.data, a.size) == 0;
+static inline int sv_eq(sv *a, sv *b) {
+    return a->size == b->size && memcmp(a->data, b->data, a->size) == 0;
 }
 
 /**
@@ -93,9 +92,9 @@ static inline int sv_eq(sv a, sv b) {
  * @param prefix The prefix to compare against.
  * @return true if @p s starts with @p prefix, false otherwise.
  */
-static inline bool sv_starts_with(sv s, sv prefix) {
-    return s.size >= prefix.size &&
-           memcmp(s.data, prefix.data, prefix.size) == 0;
+static inline bool sv_starts_with(sv *s, sv *prefix) {
+    return s->size >= prefix->size &&
+           memcmp(s->data, prefix->data, prefix->size) == 0;
 }
 
 /**
@@ -105,9 +104,9 @@ static inline bool sv_starts_with(sv s, sv prefix) {
  * @param suffix The suffix to compare against.
  * @return true if @p s ends with @p suffix, false otherwise.
  */
-static inline bool sv_ends_with(sv s, sv suffix) {
-    return s.size >= suffix.size &&
-           memcmp(s.data + (s.size - suffix.size), suffix.data, suffix.size) == 0;
+static inline bool sv_ends_with(sv *s, sv *suffix) {
+    return s->size >= suffix->size &&
+           memcmp(s->data + (s->size - suffix->size), suffix->data, suffix->size) == 0;
 }
 
 /**
@@ -122,17 +121,7 @@ static inline bool sv_ends_with(sv s, sv suffix) {
  *
  * This macro provides the length and data pointer expected by @ref SV_FMT.
  */
-#define SV_ARG(s) ((int)(s).size), ((s).data)
+#define SV_ARG(s) ((int)(s)->size), ((s)->data)
 
-/* -------------------- RAYLIB HELPERS -------------------- */
 
-/**
- * @brief This function draws a sv directly using TextFormat
- * @warning TextFormat supports only medium-sized strings, so dont use this
- *          function for very long strings!
- */
-static inline void DrawSV(sv s, int posX, int posY, int fontSize, Color color) {
-    DrawText(TextFormat(SV_FMT, SV_ARG(s)), posX, posY, fontSize, color);
-}
-
-#endif // UTILITY_H
+#endif // SV_HELPER_H
